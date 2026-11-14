@@ -1,0 +1,53 @@
+[
+ {
+  "slug": "cunha",
+  "nome": "Cunha",
+  "uf": "SP",
+  "ativa": true,
+  "legislaturas": [
+   19,
+   18
+  ],
+  "sapl": "https://sapl.cunha.sp.leg.br"
+ },
+ {
+  "slug": "taubate",
+  "nome": "Taubaté",
+  "uf": "SP",
+  "ativa": false,
+  "legislaturas": null,
+  "sapl": null
+ },
+ {
+  "slug": "sao-jose-dos-campos",
+  "nome": "São José dos Campos",
+  "uf": "SP",
+  "ativa": false,
+  "legislaturas": null,
+  "sapl": null
+ },
+ {
+  "slug": "jacarei",
+  "nome": "Jacareí",
+  "uf": "SP",
+  "ativa": false,
+  "legislaturas": null,
+  "sapl": null
+ },
+ {
+  "slug": "pindamonhangaba",
+  "nome": "Pindamonhangaba",
+  "uf": "SP",
+  "ativa": false,
+  "legislaturas": null,
+  "sapl": null
+ },
+ {
+  "slug": "guaratingueta",
+  "nome": "Guaratinguetá",
+  "uf": "SP",
+  "ativa": false,
+  "legislaturas": null,
+  "sapl": null
+ }
+]

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vale em Foco: o que cada vereador faz, com dados oficiais</title>
+<meta name="description" content="Vale do Paraíba em Foco. Vereadores de Cunha-SP, com dados oficiais da Câmara: pedidos, cobranças, homenagens, leis, presença e votos.">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<header class="topo">
+  <div class="faixa">
+    <a class="marca" href="./" aria-label="Vale em Foco, início">
+      <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="20" cy="20" r="6" fill="var(--destaque)"/></svg>
+      <span>Vale <b>em Foco</b></span>
+    </a>
+    <div class="seletores">
+      <label>Cidade <select id="sel-cidade"></select></label>
+      <label>Período <select id="sel-leg"></select></label>
+    </div>
+  </div>
+  <div class="abre">
+    <p class="sobre">Vale do Paraíba em Foco</p>
+    <h1 id="titulo">Carregando…</h1>
+    <p id="linha-fina"></p>
+    <p class="atualizado" id="atualizado"></p>
+  </div>
+</header>
+
+<main id="conteudo" hidden>
+  <section class="numeros" id="numeros" aria-label="Resumo"></section>
+
+  <section id="busca">
+    <h2>O que pediram pelo seu bairro?</h2>
+    <p class="apoio">Digite o nome de uma rua, estrada ou bairro. A busca olha o texto oficial de cada proposta.</p>
+    <input id="campo-busca" type="search" placeholder="Ex.: Vila Rica, Paraibuna, Major Santana" autocomplete="off" aria-label="Buscar por rua ou bairro">
+    <div class="chips" id="chips-bairros"></div>
+    <p class="contagem" id="busca-contagem"></p>
+    <ol class="lista" id="busca-resultado"></ol>
+    <button class="mais" id="busca-mais" hidden>Mostrar mais</button>
+  </section>
+
+  <section id="repetidos">
+    <h2>A via que volta à pauta</h2>
+    <p class="apoio">Ruas e estradas citadas em mais de um pedido. O site não afirma que é o mesmo problema: abra o cartão e leia os pedidos.</p>
+    <div id="lista-repetidos"></div>
+    <button class="mais" id="repetidos-mais" hidden>Mostrar mais vias</button>
+  </section>
+
+  <section id="grupos">
+    <h2>Homenagem ou trabalho?</h2>
+    <p class="apoio">As propostas de autoria dos vereadores no período, separadas por tipo. A regra é a mesma para todos e está explicada no fim da página.</p>
+    <div id="barras-grupos"></div>
+  </section>
+
+  <section id="vereadores">
+    <h2>Os vereadores, um por um</h2>
+    <div class="filtros">
+      <label>Partido <select id="filtro-partido"></select></label>
+      <label>Ordenar por <select id="ordem">
+        <option value="nome">Nome</option>
+        <option value="total">Mais propostas</option>
+        <option value="pedido">Mais pedidos</option>
+        <option value="homenagem">Mais homenagens e pesar</option>
+        <option value="faltas">Menor presença</option>
+        <option value="nao">Mais votos “não”</option>
+      </select></label>
+    </div>
+    <div class="cartoes" id="cartoes"></div>
+  </section>
+
+  <section id="prefeito" hidden>
+    <h2>O que o prefeito mandou para a Câmara</h2>
+    <p class="aviso">Aqui só aparece o que passou pela Câmara. Obras, contratos e gastos da Prefeitura não estão neste site.</p>
+    <p class="contagem" id="prefeito-contagem"></p>
+    <ol class="lista" id="prefeito-lista"></ol>
+    <button class="mais" id="prefeito-mais" hidden>Mostrar mais</button>
+  </section>
+
+  <section id="metodo">
+    <h2>De onde vêm os números</h2>
+    <div class="metodo" id="metodo-texto"></div>
+    <div class="erro-box">
+      <h3>Achou um erro?</h3>
+      <p id="texto-erro"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p id="rodape-quem"></p>
+  <p>Sem vínculo com Câmara, Prefeitura, partido ou candidato. Os dados são públicos e vêm do sistema oficial da Câmara.</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
