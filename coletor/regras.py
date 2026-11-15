@@ -138,6 +138,13 @@ def presenca(parlamentar_id, mandatos, sessoes, presentes_por_sessao):
 _VOTO = {"sim": "sim", "nao": "nao", "abstencao": "abstencao", "nao votou": "nao_votou"}
 
 
+_LETRA = {"sim": "s", "nao": "n", "abstencao": "a", "nao_votou": "x"}
+
+
+def letra_do_voto(voto):
+    return _LETRA.get(_VOTO.get(chave(voto)), "o")
+
+
 def resumo_votos(votos):
     r = {"sim": 0, "nao": 0, "abstencao": 0, "nao_votou": 0}
     for v in votos:

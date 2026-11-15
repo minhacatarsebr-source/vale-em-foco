@@ -52,9 +52,10 @@ def montar(cidade, legislatura, bruto, gerado_em):
     # --- propostas
     tipos = {t["id"]: t for t in bruto["tipos"]}
     desc_status = {s["id"]: s["descricao"] for s in bruto["status"]}
-    ultima = {}
+    ultima, data_ultima = {}, {}
     for t in sorted(bruto["tramitacoes"], key=lambda t: (t["data_tramitacao"] or "", t["id"])):
         ultima[t["materia"]] = desc_status.get(t["status"], "")
+        data_ultima[t["materia"]] = t["data_tramitacao"] or ""
 
     materias = []
     propostas = {pid: Counter() for pid in mandatos}
@@ -78,6 +79,7 @@ def montar(cidade, legislatura, bruto, gerado_em):
             "au": vereadores,
             "pref": bool(do_exec),
             "st": ultima.get(m["id"], ""),
+            "ds": data_ultima.get(m["id"], ""),
             "l": [list(x) for x in regras.extrair_locais(ementa)],
         })
 
@@ -101,14 +103,35 @@ def montar(cidade, legislatura, bruto, gerado_em):
     # --- votos: valem pela sessão em que aconteceram, não pela data em que foram digitados
     sessao_da_pauta = {("ordem", o["id"]): o["sessao_plenaria"] for o in bruto["ordens"]}
     sessao_da_pauta.update({("expediente", e["id"]): e["sessao_plenaria"] for e in bruto["expedientes"]})
-    votacoes_validas = {
-        v["id"] for v in bruto["votacoes"]
-        if (sessao_da_pauta.get(("ordem", v["ordem"])) or sessao_da_pauta.get(("expediente", v["expediente"]))) in ids_sessoes
-    }
+    sessao_da_votacao = {
+        v["id"]: sessao_da_pauta.get(("ordem", v["ordem"])) or sessao_da_pauta.get(("expediente", v["expediente"]))
+        for v in bruto["votacoes"]}
+    votacoes_validas = {vid for vid, sid in sessao_da_votacao.items() if sid in ids_sessoes}
     votos = {pid: [] for pid in mandatos}
+    nominal = {}  # votação -> {parlamentar: letra}
     for v in bruto["votos"]:
         if v["parlamentar"] in votos and v["votacao"] in votacoes_validas:
             votos[v["parlamentar"]].append(v["voto"])
+            nominal.setdefault(v["votacao"], {})[v["parlamentar"]] = regras.letra_do_voto(v["voto"])
+
+    # --- voto por projeto: só votações com nomes lançados; o total oficial serve de conferência
+    data_sessao = {s["id"]: s["data"] for s in sessoes}
+    resultado = {r["id"]: r["nome"] for r in bruto.get("resultados", [])}
+    votacoes = []
+    for v in bruto["votacoes"]:
+        if v["id"] not in nominal:
+            continue
+        nomes = nominal[v["id"]]
+        oficial = [v.get("numero_votos_sim"), v.get("numero_votos_nao"), v.get("numero_abstencoes")]
+        tem_oficial = all(n is not None for n in oficial)
+        contado = [sum(1 for x in nomes.values() if x == letra) for letra in "sna"]
+        titulo = re.search(r"\d+ - (.+?) em ", v.get("__str__") or "")
+        votacoes.append({
+            "id": v["id"], "m": v["materia"], "t": titulo.group(1) if titulo else "",
+            "d": data_sessao[sessao_da_votacao[v["id"]]], "r": resultado.get(v.get("tipo_resultado_votacao"), ""),
+            "of": oficial if tem_oficial else None, "ok": not tem_oficial or contado == oficial, "v": nomes,
+        })
+    votacoes.sort(key=lambda v: (v["d"], v["id"]), reverse=True)
 
     # --- quem presidiu a Câmara nesta legislatura (presidente só vota em casos específicos)
     sl = {x["id"] for x in bruto["sessoes_legislativas"]}
@@ -161,10 +184,12 @@ def montar(cidade, legislatura, bruto, gerado_em):
         "repetidos": regras.vias_repetidas(materias),
         "prefeito": {"nome": autores_exec.get(prefeito_id, ""), "total": sum(1 for m in materias if m["pref"])},
         "subsidio": subsidio or None,
+        "votacoes": votacoes,
         "sessoes": {"total": len(sessoes), "com_registro": len(presentes), "sem_registro": sem_registro},
         "controle": {
             "presencas": sum(v["presenca"]["presentes"] for v in vereadores),
             "votos": sum(len(x) for x in votos.values()),
             "com_autor": sum(1 for m in materias if m["au"]),
+            "votacoes_divergentes": sum(1 for v in votacoes if not v["ok"]),
         },
     }

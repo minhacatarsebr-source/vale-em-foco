@@ -3,19 +3,19 @@ import json
 import time
 import urllib.request
 
-BASE = "https://transparencia.tce.sp.gov.br/api/json/receitas"
+BASE = "https://transparencia.tce.sp.gov.br/api/json"
 PAUSA = 1.0
 
 
-def buscador(municipio, ano, contato, pausa=PAUSA):
-    """Devolve a função que lê um mês da receita do município."""
+def buscador(municipio, ano, contato, pausa=PAUSA, tipo="receitas"):
+    """Devolve a função que lê um mês de receitas ou de despesas do município."""
     def buscar(mes):
-        url = f"{BASE}/{municipio}/{ano}/{mes}"
+        url = f"{BASE}/{tipo}/{municipio}/{ano}/{mes}"
         for tentativa in range(3):
             time.sleep(pausa)
             try:
                 req = urllib.request.Request(url, headers={"User-Agent": contato, "Accept": "application/json"})
-                with urllib.request.urlopen(req, timeout=60) as r:
+                with urllib.request.urlopen(req, timeout=120) as r:
                     return json.load(r)
             except Exception as e:
                 if tentativa == 2:

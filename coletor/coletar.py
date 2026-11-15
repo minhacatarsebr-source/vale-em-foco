@@ -8,7 +8,7 @@ import os
 import pathlib
 import sys
 
-from . import regras, sapl, tce
+from . import contas, regras, sapl, tce
 from .montar import montar
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
@@ -27,6 +27,28 @@ def receita_do_ano(cidade, contato, ano, anterior):
         return anterior
 
 
+def despesa_do_ano(cidade, contato, ano, anterior):
+    """Pagamentos (TCE-SP) e gasto por área (Tesouro). Cada parte que falhar mantém a última boa."""
+    anterior = anterior or {}
+    nova = None
+    try:
+        meses = tce.receitas_do_ano(tce.buscador(cidade["tce_sp"], ano, contato, tipo="despesas"))
+        nova = contas.resumo_despesa(ano, meses)
+        if nova is None or (anterior.get("ano") == ano and nova["ate_mes"] < anterior["ate_mes"]):
+            raise RuntimeError("despesa veio vazia ou com menos meses que a anterior")
+    except Exception as e:
+        print(f"  despesa não atualizada ({e}). Mantida a anterior.", file=sys.stderr)
+        return anterior or None
+    nova["areas"] = anterior.get("areas")
+    try:
+        if cidade.get("ibge"):
+            bimestre, itens = contas.ultimo_bimestre(contas.buscador_tesouro(cidade["ibge"], ano, contato))
+            nova["areas"] = contas.resumo_areas(ano, bimestre, itens) or nova["areas"]
+    except Exception as e:
+        print(f"  gasto por área não atualizado ({e}). Mantido o anterior.", file=sys.stderr)
+    return nova
+
+
 def coletar_cidade(cidade, contato):
     cliente = sapl.Sapl(cidade["sapl"], contato)
     for numero in cidade["legislaturas"]:
@@ -36,9 +58,10 @@ def coletar_cidade(cidade, contato):
         novo = montar(cidade, leg, bruto, gerado_em=agora)
         anterior = json.loads(destino.read_text()) if destino.exists() else None
         ano = int(agora[:4])
-        novo["receita"] = None
+        novo["receita"] = novo["despesa"] = None
         if cidade.get("tce_sp") and novo["legislatura"]["inicio"][:4] <= str(ano) <= novo["legislatura"]["fim"][:4]:
             novo["receita"] = receita_do_ano(cidade, contato, ano, (anterior or {}).get("receita"))
+            novo["despesa"] = despesa_do_ano(cidade, contato, ano, (anterior or {}).get("despesa"))
         motivos = regras.problemas_da_coleta(novo, anterior)
         if motivos:
             raise RuntimeError(f"legislatura {numero} não publicada: " + "; ".join(motivos))

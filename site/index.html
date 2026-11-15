@@ -82,9 +82,36 @@
     <div class="cartoes" id="cartoes"></div>
   </section>
 
+  <section id="votacoes" hidden>
+    <h2>Como cada um votou</h2>
+    <p class="apoio">Só aparecem as votações em que a Câmara registrou o voto de cada vereador. Abra o link para ler a proposta inteira.</p>
+    <label class="marcar"><input type="checkbox" id="votacoes-divididas"> Mostrar só as que tiveram voto contra ou abstenção</label>
+    <p class="contagem" id="votacoes-contagem"></p>
+    <ol class="lista" id="votacoes-lista"></ol>
+    <button class="mais" id="votacoes-mais" hidden>Mostrar mais votações</button>
+  </section>
+
+  <section id="respostas" hidden>
+    <h2>Os requerimentos tiveram resposta?</h2>
+    <p class="apoio">Requerimento é o pedido formal de informação ou providência. As situações abaixo estão escritas como a Câmara registra. Para as indicações, a Câmara não registra se o pedido foi atendido.</p>
+    <ul class="itens-placar" id="respostas-situacoes"></ul>
+    <p class="contagem" id="respostas-contagem"></p>
+    <ol class="lista" id="respostas-lista"></ol>
+  </section>
+
+  <section id="despesa" hidden>
+    <h2>Para onde vai o dinheiro</h2>
+    <div class="numeros" id="despesa-numeros"></div>
+    <h3 id="despesa-areas-titulo">Gasto da Prefeitura por área</h3>
+    <div id="despesa-areas"></div>
+    <h3>Quem mais recebeu da Prefeitura</h3>
+    <ul class="itens-placar" id="despesa-fornecedores"></ul>
+    <p class="apoio" id="despesa-notas"></p>
+  </section>
+
   <section id="prefeito" hidden>
     <h2>O que o prefeito mandou para a Câmara</h2>
-    <p class="aviso">Aqui só aparece o que passou pela Câmara. Obras, contratos e gastos da Prefeitura não estão neste site.</p>
+    <p class="aviso">Aqui só aparece o que o Executivo enviou para a Câmara votar. Obras e contratos, um a um, não estão neste site.</p>
     <p class="contagem" id="prefeito-contagem"></p>
     <p class="apoio" id="prefeito-subsidio"></p>
     <ol class="lista" id="prefeito-lista"></ol>
@@ -106,6 +133,7 @@
   <p>Sem vínculo com Câmara, Prefeitura, partido ou candidato. Os dados são públicos e vêm do sistema oficial da Câmara.</p>
 </footer>
 <script src="placar.js"></script>
+<script src="fiscaliza.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

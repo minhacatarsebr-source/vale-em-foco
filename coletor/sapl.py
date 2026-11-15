@@ -81,6 +81,7 @@ def baixar(sapl, numero_legislatura):
         # votos sem filtro de data: a data gravada é a da digitação, não a da sessão
         "votos": sapl.tudo("sessao/votoparlamentar/"),
         "votacoes": sapl.tudo("sessao/registrovotacao/"),
+        "resultados": sapl.tudo("sessao/tiporesultadovotacao/"),
         "ordens": sapl.tudo("sessao/ordemdia/"),
         "expedientes": sapl.tudo("sessao/expedientemateria/"),
         "sessoes_legislativas": sapl.tudo("parlamentares/sessaolegislativa/", legislatura=leg["id"]),

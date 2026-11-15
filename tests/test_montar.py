@@ -107,6 +107,35 @@ class Montar(unittest.TestCase):
     def test_voto_de_sessao_de_outra_legislatura_fica_de_fora(self):
         self.assertEqual(self.v["Ana"]["votos"]["nao"], 1)
 
+    def test_votacoes_trazem_o_voto_de_cada_um_pela_data_da_sessao(self):
+        vs = {v["id"]: v for v in self.d["votacoes"]}
+        self.assertEqual(sorted(vs), [1, 2])  # a 3 é de sessão de outra legislatura
+        self.assertEqual(vs[2]["m"], 3)
+        self.assertEqual(vs[2]["d"], "2025-10-06")
+        self.assertEqual(vs[2]["v"], {11: "n", 12: "s"})
+
+    def test_votacoes_vem_da_mais_recente_para_a_mais_antiga(self):
+        self.assertEqual([v["id"] for v in self.d["votacoes"]], [2, 1])
+
+    def test_votacao_guarda_resultado_e_titulo_oficiais(self):
+        b = bruto()
+        b["resultados"] = [{"id": 2, "nome": "Aprovada por maioria simples"}]
+        b["votacoes"][1].update(tipo_resultado_votacao=2, numero_votos_sim=1, numero_votos_nao=1, numero_abstencoes=0,
+                                __str__="Ordem: Ordem do Dia/Expediente: 3 - Moção nº 1 de 2025 em 20ª Ordinária - Votação: Aprovada")
+        v = [x for x in montar(CIDADE, LEG, b, gerado_em="2026-11-14T12:00:00")["votacoes"] if x["id"] == 2][0]
+        self.assertEqual((v["r"], v["t"], v["of"], v["ok"]), ("Aprovada por maioria simples", "Moção nº 1 de 2025", [1, 1, 0], True))
+
+    def test_votacao_cujo_total_oficial_nao_bate_com_os_nomes_e_marcada(self):
+        b = bruto()
+        b["votacoes"][1].update(numero_votos_sim=9, numero_votos_nao=0, numero_abstencoes=0)
+        d = montar(CIDADE, LEG, b, gerado_em="2026-11-14T12:00:00")
+        self.assertFalse([x for x in d["votacoes"] if x["id"] == 2][0]["ok"])
+        self.assertEqual(d["controle"]["votacoes_divergentes"], 1)
+
+    def test_materia_guarda_a_data_da_ultima_situacao(self):
+        m = {m["id"]: m for m in self.d["materias"]}
+        self.assertEqual((m[1]["ds"], m[3]["ds"]), ("2025-03-05", ""))
+
     def test_so_quem_presidiu_nesta_legislatura_e_marcado(self):
         self.assertTrue(self.v["Ana"]["presidiu"])
         self.assertFalse(self.v["Beto"]["presidiu"])
@@ -137,7 +166,7 @@ class Montar(unittest.TestCase):
         self.assertIn("1ª Ordinária (03/02/2025)", d["sessoes"]["sem_registro"])
 
     def test_controle_guarda_as_somas_para_a_trava(self):
-        self.assertEqual(self.d["controle"], {"presencas": 3, "votos": 3, "com_autor": 3})
+        self.assertEqual(self.d["controle"], {"presencas": 3, "votos": 3, "com_autor": 3, "votacoes_divergentes": 0})
 
     def test_situacao_e_a_tramitacao_mais_recente(self):
         m = {m["id"]: m for m in self.d["materias"]}

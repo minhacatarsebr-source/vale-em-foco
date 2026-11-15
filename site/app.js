@@ -121,6 +121,9 @@ function desenhar() {
   grupos(dosVereadores);
   partidos();
   cartoes();
+  votacoes();
+  respostas();
+  despesa();
   prefeito();
   metodo();
   $("rodape-quem").textContent = MANTENEDOR || "Projeto cívico independente.";
@@ -363,10 +366,13 @@ function metodo() {
     `Para suplentes, vereadores com afastamento e quem ficou ${8} ou mais sessões seguidas sem aparecer, o sistema não informa todas as datas de exercício. Nesses casos o site mostra só em quantas sessões a pessoa esteve presente, sem porcentagem e sem comparar.`,
     s.sem_registro.length ? "Sessões fora da conta: " + s.sem_registro.join("; ") + "." : null);
   bloco("Votos", "Só aparecem as votações nominais lançadas no sistema, contadas pela sessão em que aconteceram. Votação simbólica ou não lançada não aparece. “Não votou” é como o sistema registra, e não indica o motivo. Quem preside a sessão, em regra, só vota em casos previstos no regimento.");
+  if ((D.votacoes || []).length) bloco("Voto por projeto", "A lista de quem votou sim, não ou se absteve é a que a Câmara lançou no sistema. O site compara a contagem de nomes com o total oficial de cada votação e avisa quando os dois não batem." + (D.controle.votacoes_divergentes ? ` Neste período isso acontece em ${D.controle.votacoes_divergentes} votações.` : " Neste período todas batem."));
+  bloco("Requerimentos", "A situação de cada requerimento é a última registrada pela Câmara. O prazo de resposta é contado da apresentação até a data em que a Câmara registrou a resposta, que pode ser posterior à chegada dela.");
+  if (D.despesa) bloco("Despesa", "Os pagamentos vêm do Tribunal de Contas do Estado, mês a mês. O gasto por área vem do relatório bimestral que a Prefeitura entrega ao Tesouro Nacional; por isso os dois recortes podem cobrir meses diferentes e usar estágios diferentes da despesa (liquidada e paga).");
   bloco("Ruas e bairros", "A busca procura o nome no texto oficial da proposta. A lista de vias repetidas junta pedidos que citam a mesma rua ou estrada, mesmo que tratem de assuntos diferentes.");
   if (D.subsidio) bloco("Subsídios", [`O placar multiplica o subsídio mensal fixado em norma pelo tempo passado desde o início da legislatura: na Câmara, pelas ${D.subsidio.cadeiras} cadeiras (${D.subsidio.norma}); no Executivo, prefeito e vice. É uma estimativa: o site não lê a folha de pagamento. Quando um suplente assume, a conta segue sendo por cadeira. `, fonte(D.subsidio.caminho, "Abrir a norma da Câmara")]);
   if (D.receita) bloco("Impostos da cidade", ["A arrecadação vem do Portal da Transparência Municipal do Tribunal de Contas do Estado, que publica a receita da Prefeitura mês a mês, com atraso de um a dois meses. Entram como impostos e taxas municipais: IPTU, ISS, ITBI, imposto de renda retido na fonte pela Prefeitura e taxas. Impostos estaduais e federais pagos na cidade não aparecem aqui. ", link(TCE + D.cidade.slug, "Abrir o portal do TCE-SP")]);
-  bloco("O que ainda não está aqui", (D.subsidio ? "Folha de pagamento, " : "Salário dos vereadores, ") + "obras, contratos e gastos. Só entram quando houver fonte oficial conferida.");
+  bloco("O que ainda não está aqui", (D.subsidio ? "Folha de pagamento, " : "Salário dos vereadores, ") + "obras e contratos um a um. Só entram quando houver fonte oficial conferida.");
   const erro = limpa($("texto-erro"));
   erro.append("Compare com a página oficial pelo link de cada item. Se o site estiver diferente da Câmara, o erro é nosso e será corrigido. ");
   erro.append(CONTATO_ERRO ? "Escreva para " + CONTATO_ERRO + "." : "Se o erro estiver no registro da própria Câmara, a correção é pedida à secretaria da Câmara.");
