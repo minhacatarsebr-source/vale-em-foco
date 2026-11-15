@@ -22,6 +22,7 @@ let D = null;          // dados da cidade e legislatura escolhidas
 let CIDADES = [];
 let porId = new Map();
 let nomeVereador = new Map();
+let noCaminho = "";     // cidade tirada do endereço (pasta), quando houver
 let pedidoAtual = 0;   // evita que uma resposta atrasada sobrescreva a escolha mais recente
 
 function h(tag, attrs, ...filhos) {
@@ -56,10 +57,13 @@ async function iniciar() {
   const q = new URLSearchParams(location.search);
   const sel = $("sel-cidade");
   for (const c of CIDADES) sel.append(h("option", { value: c.slug, disabled: !c.ativa }, c.ativa ? c.nome : c.nome + " (em breve)"));
-  const ativa = CIDADES.find((c) => c.ativa && c.slug === q.get("cidade")) || CIDADES.find((c) => c.ativa);
+  // endereço próprio de cada cidade: valeemfoco.org/cunha
+  const pasta = location.pathname.split("/").filter((p) => p && p !== "index.html").pop();
+  noCaminho = CIDADES.some((c) => c.ativa && c.slug === pasta) ? pasta : "";
+  const ativa = CIDADES.find((c) => c.ativa && c.slug === (noCaminho || q.get("cidade"))) || CIDADES.find((c) => c.ativa);
   if (!ativa) { $("titulo").textContent = "Nenhuma cidade disponível ainda"; return; }
   sel.value = ativa.slug;
-  sel.addEventListener("change", () => trocar(sel.value, null));
+  sel.addEventListener("change", () => { location.href = sel.value + "/"; });
   $("sel-leg").addEventListener("change", () => trocar(sel.value, $("sel-leg").value));
   $("campo-busca").addEventListener("input", () => { limiteBusca = PASSO; buscar(); });
   $("busca-mais").addEventListener("click", () => { limiteBusca += PASSO * 2; buscar(); });
@@ -88,7 +92,8 @@ async function trocar(slug, leg) {
   }
   if (meu !== pedidoAtual) return;
   D = dados;
-  history.replaceState(null, "", `?cidade=${slug}&leg=${numero}`);
+  const outraLeg = String(numero) !== String(legs[0]) ? `?leg=${numero}` : "";
+  history.replaceState(null, "", noCaminho ? location.pathname + outraLeg : `?cidade=${slug}&leg=${numero}`);
   porId = new Map(D.materias.map((m) => [m.id, m]));
   nomeVereador = new Map(D.vereadores.map((v) => [v.id, v.nome]));
   desenhar();

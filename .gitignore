@@ -2,3 +2,4 @@ __pycache__/
 .claude-flow/
 .superpowers/
 *.pyc
+site/*/index.html

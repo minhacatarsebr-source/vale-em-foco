@@ -41,6 +41,8 @@ jobs:
           git commit -m "dados: coleta de $(date -u +%F)"
           git pull --rebase -X theirs   # se colidir, vale o dado recém-coletado
           git push
+      - name: Página de cada cidade (valeemfoco.org/cunha)
+        run: python3 -m coletor.paginas
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
