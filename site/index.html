@@ -31,10 +31,15 @@
   <section class="numeros" id="numeros" aria-label="Resumo"></section>
 
   <section id="placar" hidden>
-    <h2>Subsídio dos vereadores desde o início do mandato</h2>
-    <p class="placar-valor" id="placar-valor" aria-live="off"></p>
-    <p class="placar-selo"><span class="selo">Estimativa</span> <span id="placar-ritmo"></span></p>
+    <h2>Placar do dinheiro público</h2>
+    <div class="abas" id="placar-abas" role="tablist" aria-label="O que o placar mostra"></div>
+    <div class="painel">
+      <p class="painel-titulo" id="placar-titulo"></p>
+      <div class="digitos" id="placar-digitos" role="img"></div>
+      <p class="painel-nota"><span class="selo" id="placar-selo"></span> <span id="placar-nota"></span></p>
+    </div>
     <p class="apoio" id="placar-conta"></p>
+    <ul class="itens-placar" id="placar-itens"></ul>
   </section>
 
   <section id="busca">
@@ -80,6 +85,7 @@
     <h2>O que o prefeito mandou para a Câmara</h2>
     <p class="aviso">Aqui só aparece o que passou pela Câmara. Obras, contratos e gastos da Prefeitura não estão neste site.</p>
     <p class="contagem" id="prefeito-contagem"></p>
+    <p class="apoio" id="prefeito-subsidio"></p>
     <ol class="lista" id="prefeito-lista"></ol>
     <button class="mais" id="prefeito-mais" hidden>Mostrar mais</button>
   </section>

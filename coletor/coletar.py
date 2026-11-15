@@ -8,11 +8,23 @@ import os
 import pathlib
 import sys
 
-from . import regras, sapl
+from . import regras, sapl, tce
 from .montar import montar
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 SAIDA = RAIZ / "site" / "dados"
+
+
+def receita_do_ano(cidade, contato, ano, anterior):
+    """Receita publicada pelo TCE-SP. Se a leitura falhar ou vier estranha, vale a última boa."""
+    try:
+        nova = regras.resumo_receita(ano, tce.receitas_do_ano(tce.buscador(cidade["tce_sp"], ano, contato)))
+        if nova is None or regras.receita_suspeita(nova, anterior):
+            raise RuntimeError("receita veio vazia ou menor que a anterior")
+        return nova
+    except Exception as e:
+        print(f"  receita não atualizada ({e}). Mantida a anterior.", file=sys.stderr)
+        return anterior
 
 
 def coletar_cidade(cidade, contato):
@@ -23,6 +35,10 @@ def coletar_cidade(cidade, contato):
         agora = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
         novo = montar(cidade, leg, bruto, gerado_em=agora)
         anterior = json.loads(destino.read_text()) if destino.exists() else None
+        ano = int(agora[:4])
+        novo["receita"] = None
+        if cidade.get("tce_sp") and novo["legislatura"]["inicio"][:4] <= str(ano) <= novo["legislatura"]["fim"][:4]:
+            novo["receita"] = receita_do_ano(cidade, contato, ano, (anterior or {}).get("receita"))
         motivos = regras.problemas_da_coleta(novo, anterior)
         if motivos:
             raise RuntimeError(f"legislatura {numero} não publicada: " + "; ".join(motivos))

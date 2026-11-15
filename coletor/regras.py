@@ -2,6 +2,7 @@
 
 Tudo aqui é função pura (sem internet), para poder ser testado.
 """
+import html
 import re
 import unicodedata
 
@@ -168,3 +169,40 @@ def problemas_da_coleta(novo, anterior):
             if agora < antes * 0.9:
                 motivos.append(f"{nome} caíram de {antes} para {agora}")
     return motivos
+
+
+def _centavos(texto):
+    """'1.234,56' -> 123456 (em centavos, para a soma não acumular erro de arredondamento)."""
+    return round(float(texto.replace(".", "").replace(",", ".")) * 100)
+
+
+def resumo_receita(ano, meses):
+    """Receita arrecadada no ano, pelo que o TCE-SP publica. `meses` é {mês: linhas}.
+
+    Impostos e taxas municipais são as alíneas de código 11 (IPTU, ISS, ITBI, IR retido na fonte, taxas).
+    O total inclui também os repasses do Estado e da União.
+    """
+    if not meses:
+        return None
+    total = impostos = 0
+    itens = {}
+    for linhas in meses.values():
+        for l in linhas:
+            codigo, _, nome = l["ds_alinea"].partition(" - ")
+            valor = _centavos(l["vl_arrecadacao"])
+            total += valor
+            if codigo.startswith("11"):
+                impostos += valor
+                nome = html.unescape(nome).strip()
+                itens[nome] = itens.get(nome, 0) + valor
+    return {
+        "ano": ano, "ate_mes": max(meses), "total": total / 100, "impostos": impostos / 100,
+        "itens": [{"nome": n, "valor": v / 100} for n, v in sorted(itens.items(), key=lambda i: -i[1])],
+    }
+
+
+def receita_suspeita(nova, anterior):
+    """No mesmo ano a arrecadação acumulada só cresce; se encolheu bastante, a leitura veio pela metade."""
+    if not anterior or not nova or nova["ano"] != anterior["ano"]:
+        return False
+    return nova["ate_mes"] < anterior["ate_mes"] or nova["total"] < anterior["total"] * 0.9

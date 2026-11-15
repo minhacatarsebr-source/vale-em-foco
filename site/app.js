@@ -1,6 +1,6 @@
 "use strict";
 // ---------- Ajustes de quem mantém o site ----------
-const SHOW_PREFEITO = false;   // ligar só depois de conferir os números dos vereadores
+const SHOW_PREFEITO = true;    // seção do prefeito e aba do Executivo no placar
 const SHOW_FOTOS = true;       // fotos vêm do próprio SAPL; desligue se a Câmara pedir
 const MANTENEDOR = "";         // ex.: "Mantido por Fulano de Tal, morador de Cunha"
 const CONTATO_ERRO = "";       // ex.: "erros@valeemfoco.org"
@@ -262,6 +262,9 @@ function prefeito() {
   let limite = PASSO;
   const pinta = () => {
     $("prefeito-contagem").textContent = `${nf.format(ms.length)} propostas enviadas pelo Executivo neste período` + (D.prefeito.nome ? ` (autor mais frequente no sistema: ${D.prefeito.nome}).` : ".");
+    const ex = D.subsidio && D.subsidio.executivo;
+    limpa($("prefeito-subsidio"));
+    if (ex) $("prefeito-subsidio").append(`Subsídio mensal fixado em lei: prefeito ${reais.format(ex.prefeito)}, vice-prefeito ${reais.format(ex.vice)}` + (ex.secretario ? `, secretários municipais ${reais.format(ex.secretario)} cada. ` : ". "), fonte(ex.caminho, ex.norma));
     limpa($("prefeito-lista")).append(...ms.slice(0, limite).map(item));
     $("prefeito-mais").hidden = ms.length <= limite;
   };
@@ -269,21 +272,79 @@ function prefeito() {
   pinta();
 }
 
-// ---------- placar do subsídio ----------
+// ---------- placar ----------
+const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+const TCE = "https://transparencia.tce.sp.gov.br/municipio/";
+const link = (url, texto) => h("a", { href: url, target: "_blank", rel: "noopener" }, texto);
+
+function abasDoPlacar() {
+  const sub = D.subsidio, l = D.legislatura, r = D.receita, abas = [];
+  const fora = "É o valor fixado na norma, não a folha de pagamento: não entram encargos, décimo terceiro, diárias, assessores, descontos nem reajustes posteriores. ";
+  const corre = (mensal) => () => pagoAte(mensal, l.inicio, l.fim, Date.now());
+  if (sub) abas.push({
+    rotulo: "Vereadores", titulo: `Subsídio dos vereadores desde ${dataBr(l.inicio)}`, valor: corre(sub.mensal), vivo: true,
+    selo: "Estimativa", nota: `${reais.format(sub.mensal)} por mês, ${reais.format(sub.mensal / 30)} por dia.`,
+    conta: [`Conta: 1 presidente a ${reais.format(sub.presidente)} mais ${sub.cadeiras - 1} vereadores a ${reais.format(sub.vereador)} por mês. `, fora, fonte(sub.caminho, sub.norma)],
+  });
+  const ex = sub && sub.executivo;
+  if (ex && SHOW_PREFEITO) abas.push({
+    rotulo: "Prefeito e vice", titulo: `Subsídio do prefeito e do vice desde ${dataBr(l.inicio)}`, valor: corre(ex.mensal), vivo: true,
+    selo: "Estimativa", nota: `${reais.format(ex.mensal)} por mês, ${reais.format(ex.mensal / 30)} por dia.`,
+    conta: [`Conta: prefeito a ${reais.format(ex.prefeito)} mais vice a ${reais.format(ex.vice)} por mês. `,
+      ex.secretario ? `Secretários municipais (${reais.format(ex.secretario)} cada) ficam fora: a lei não diz quantos são. ` : "", fora, fonte(ex.caminho, ex.norma)],
+  });
+  if (r) abas.push({
+    rotulo: "Impostos da cidade", titulo: `Impostos e taxas municipais arrecadados em ${r.ano}`, valor: () => r.impostos, vivo: false,
+    selo: "Dado oficial", nota: `De janeiro a ${MESES[r.ate_mes - 1]} de ${r.ano}, último mês publicado. Este número não corre: só muda quando sai mês novo.`,
+    conta: [`É o que a Prefeitura de ${D.cidade.nome} arrecadou de impostos e taxas próprios. Somando os repasses do Estado e da União, a receita total no mesmo período foi de ${reais.format(r.total)}. `,
+      link(TCE + D.cidade.slug, "Fonte: Tribunal de Contas do Estado de São Paulo")],
+    itens: r.itens,
+  });
+  return abas;
+}
+
+function pintaDigitos(valor) {
+  const caixa = $("placar-digitos");
+  const centavos = Math.floor(valor * 100 + 1e-6);
+  const inteiro = String(Math.floor(centavos / 100));
+  const grupos = [];
+  for (let fim = inteiro.length; fim > 0; fim -= 3) grupos.unshift(inteiro.slice(Math.max(0, fim - 3), fim));
+  const nomes = ["Reais", "Mil", "Milhões", "Bilhões"];
+  const um = { "Milhões": "Milhão", "Bilhões": "Bilhão" };
+  const nome = (g, n) => (Number(g) === 1 && um[n]) || n || "";
+  const partes = grupos.map((g, i) => [g, nome(g, nomes[grupos.length - 1 - i])]).concat([[String(centavos % 100).padStart(2, "0"), "Centavos"]]);
+  const forma = partes.map((p) => p[0].length + p[1]).join("-");
+  if (caixa.dataset.forma !== forma) {   // só refaz as casas quando muda a quantidade de dígitos
+    caixa.dataset.forma = forma;
+    limpa(caixa).append(...partes.map(([g, nome]) => h("div", { class: "grupo" }, h("div", { class: "casas" }, [...g].map(() => h("i", null, ""))), h("small", null, nome))));
+  }
+  const casas = caixa.querySelectorAll("i"), todos = partes.map((p) => p[0]).join("");
+  casas.forEach((c, i) => { if (c.textContent !== todos[i]) c.textContent = todos[i]; });
+  caixa.setAttribute("aria-label", reais.format(centavos / 100));
+}
+
 function placar() {
   clearInterval(relogioPlacar);
-  const sub = D.subsidio, l = D.legislatura;
-  $("placar").hidden = !sub;
-  if (!sub) return;
-  const mostra = () => { $("placar-valor").textContent = reais.format(pagoAte(sub.mensal, l.inicio, l.fim, Date.now())); };
-  mostra();
+  const abas = abasDoPlacar();
+  $("placar").hidden = !abas.length;
+  if (!abas.length) return;
+  const fim = Date.parse(D.legislatura.fim + "T23:59:59-03:00");
   const calmo = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (Date.now() < Date.parse(l.fim + "T23:59:59-03:00")) relogioPlacar = setInterval(mostra, calmo ? 5000 : 100);
-  $("placar-ritmo").textContent = `${reais.format(sub.mensal)} por mês, ${reais.format(sub.mensal / 30)} por dia.`;
-  limpa($("placar-conta")).append(
-    `Conta: 1 presidente a ${reais.format(sub.presidente)} mais ${sub.cadeiras - 1} vereadores a ${reais.format(sub.vereador)} por mês, desde ${dataBr(l.inicio)}. `,
-    "É o valor fixado na norma, não a folha de pagamento: não entram encargos, décimo terceiro, diárias, assessores, descontos nem reajustes posteriores. ",
-    fonte(sub.caminho, sub.norma));
+  const botoes = abas.map((a, i) => h("button", { class: "aba", type: "button", role: "tab", onclick: () => escolhe(i) }, a.rotulo));
+  limpa($("placar-abas")).append(...botoes);
+  function escolhe(i) {
+    clearInterval(relogioPlacar);
+    const a = abas[i];
+    botoes.forEach((b, n) => b.setAttribute("aria-selected", n === i ? "true" : "false"));
+    $("placar-titulo").textContent = a.titulo;
+    $("placar-selo").textContent = a.selo;
+    $("placar-nota").textContent = a.nota;
+    limpa($("placar-conta")).append(...a.conta);
+    limpa($("placar-itens")).append(...(a.itens || []).map((x) => h("li", null, h("span", null, x.nome), h("b", null, reais.format(x.valor)))));
+    pintaDigitos(a.valor());
+    if (a.vivo && Date.now() < fim) relogioPlacar = setInterval(() => pintaDigitos(a.valor()), calmo ? 5000 : 100);
+  }
+  escolhe(0);
 }
 
 // ---------- metodologia ----------
@@ -303,7 +364,8 @@ function metodo() {
     s.sem_registro.length ? "Sessões fora da conta: " + s.sem_registro.join("; ") + "." : null);
   bloco("Votos", "Só aparecem as votações nominais lançadas no sistema, contadas pela sessão em que aconteceram. Votação simbólica ou não lançada não aparece. “Não votou” é como o sistema registra, e não indica o motivo. Quem preside a sessão, em regra, só vota em casos previstos no regimento.");
   bloco("Ruas e bairros", "A busca procura o nome no texto oficial da proposta. A lista de vias repetidas junta pedidos que citam a mesma rua ou estrada, mesmo que tratem de assuntos diferentes.");
-  if (D.subsidio) bloco("Subsídio", [`O placar multiplica o subsídio mensal fixado na ${D.subsidio.norma} pelas ${D.subsidio.cadeiras} cadeiras da Câmara e pelo tempo passado desde o início da legislatura. É uma estimativa: o site não lê a folha de pagamento. Quando um suplente assume, a conta segue sendo por cadeira. `, fonte(D.subsidio.caminho, "Abrir a norma")]);
+  if (D.subsidio) bloco("Subsídios", [`O placar multiplica o subsídio mensal fixado em norma pelo tempo passado desde o início da legislatura: na Câmara, pelas ${D.subsidio.cadeiras} cadeiras (${D.subsidio.norma}); no Executivo, prefeito e vice. É uma estimativa: o site não lê a folha de pagamento. Quando um suplente assume, a conta segue sendo por cadeira. `, fonte(D.subsidio.caminho, "Abrir a norma da Câmara")]);
+  if (D.receita) bloco("Impostos da cidade", ["A arrecadação vem do Portal da Transparência Municipal do Tribunal de Contas do Estado, que publica a receita da Prefeitura mês a mês, com atraso de um a dois meses. Entram como impostos e taxas municipais: IPTU, ISS, ITBI, imposto de renda retido na fonte pela Prefeitura e taxas. Impostos estaduais e federais pagos na cidade não aparecem aqui. ", link(TCE + D.cidade.slug, "Abrir o portal do TCE-SP")]);
   bloco("O que ainda não está aqui", (D.subsidio ? "Folha de pagamento, " : "Salário dos vereadores, ") + "obras, contratos e gastos. Só entram quando houver fonte oficial conferida.");
   const erro = limpa($("texto-erro"));
   erro.append("Compare com a página oficial pelo link de cada item. Se o site estiver diferente da Câmara, o erro é nosso e será corrigido. ");

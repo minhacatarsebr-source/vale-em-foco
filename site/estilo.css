@@ -34,8 +34,22 @@ section { padding: 32px 0; border-bottom: 1px solid var(--linha); }
 .numero b { display: block; font-size: 2rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
 .numero span { font-size: .9rem; color: var(--suave); }
 
-.placar-valor { margin: 8px 0 6px; font-size: clamp(2.2rem, 10vw, 4.6rem); font-weight: 900; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--destaque); overflow-wrap: anywhere; }
-.placar-selo { margin: 0 0 12px; font-size: .95rem; color: var(--suave); }
+.abas { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+.aba { border: 2px solid var(--tinta); border-bottom: 0; border-radius: 10px 10px 0 0; background: var(--papel); padding: 10px 16px; font-weight: 800; cursor: pointer; min-height: 44px; }
+.aba[aria-selected="true"] { background: var(--tinta); color: var(--papel); }
+.painel { background: var(--tinta); color: var(--papel); border-radius: 0 14px 14px 14px; padding: 18px 14px 16px; text-align: center; }
+.painel-titulo { margin: 0 0 14px; font-weight: 700; font-size: .95rem; }
+.digitos { display: flex; justify-content: center; align-items: flex-start; gap: clamp(4px, 1.2vw, 12px); font-size: clamp(1.25rem, 6.2vw, 4rem); }
+.grupo { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.grupo .casas { display: flex; gap: clamp(1px, .3vw, 4px); }
+.grupo i { display: block; width: .78em; padding: .16em 0; border-radius: .12em; background: var(--fundo); color: var(--tinta); font-style: normal; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; box-shadow: inset 0 -0.5em 0 rgba(0, 0, 0, .07); }
+.grupo small { font-size: clamp(.6rem, 1.6vw, .8rem); font-weight: 700; letter-spacing: .02em; }
+.painel-nota { margin: 14px 0 0; font-size: .9rem; }
+.painel .selo { background: var(--papel); }
+#placar-conta { margin-top: 14px; }
+.itens-placar { list-style: none; padding: 0; margin: 0; max-width: 65ch; }
+.itens-placar li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--linha); }
+.itens-placar b { white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 #campo-busca { width: 100%; padding: 14px 16px; border: 3px solid var(--tinta); border-radius: 12px; background: var(--papel); font-size: 1.1rem; }
 #campo-busca:focus, select:focus, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--destaque); outline-offset: 2px; }

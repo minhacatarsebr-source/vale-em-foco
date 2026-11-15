@@ -166,6 +166,13 @@ class Montar(unittest.TestCase):
         self.assertEqual(d["subsidio"], {"presidente": 7125, "vereador": 5625, "cadeiras": 2, "mensal": 12750,
                                          "norma": "Resolução nº 2, de 06 de março de 2024", "caminho": "/norma/2185"})
 
+    def test_subsidio_do_executivo_soma_prefeito_e_vice(self):
+        ex = {"prefeito": 21250, "vice": 11875, "norma": "Lei nº 1.935, de 15 de março de 2024", "caminho": "/norma/2191"}
+        cidade = dict(CIDADE, subsidios={"19": {"presidente": 7125, "vereador": 5625, "norma": "R", "caminho": "/n", "executivo": ex}})
+        d = montar(cidade, LEG, bruto(), gerado_em="2026-11-14T12:00:00")
+        self.assertEqual(d["subsidio"]["executivo"], dict(ex, mensal=33125))
+        self.assertEqual(d["subsidio"]["mensal"], 7125)  # a conta da Câmara não mistura o Executivo
+
     def test_sem_norma_cadastrada_nao_ha_subsidio(self):
         self.assertIsNone(self.d["subsidio"])
 

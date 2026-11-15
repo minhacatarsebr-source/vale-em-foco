@@ -148,6 +148,9 @@ def montar(cidade, legislatura, bruto, gerado_em):
     norma = (cidade.get("subsidios") or {}).get(str(legislatura["numero"]))
     subsidio = norma and {**norma, "cadeiras": cadeiras,
                           "mensal": norma["presidente"] + norma["vereador"] * (cadeiras - 1)}
+    if subsidio and subsidio.get("executivo"):  # prefeito e vice; secretários ficam fora (o número deles não está na lei)
+        ex = subsidio["executivo"]
+        subsidio["executivo"] = {**ex, "mensal": ex["prefeito"] + ex["vice"]}
 
     return {
         "cidade": {k: cidade[k] for k in ("slug", "nome", "uf", "sapl")},
