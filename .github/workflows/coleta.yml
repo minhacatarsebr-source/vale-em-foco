@@ -27,7 +27,7 @@ jobs:
       - name: Testes das regras
         run: python3 -m unittest discover -s tests
       - name: Testes do placar
-        run: node --test tests/
+        run: node --test tests/placar.test.js
       - name: Coleta (cidade que falha mantém o último arquivo bom)
         id: coleta
         if: github.event_name != 'push'
