@@ -16,6 +16,8 @@ const GRUPOS = [
 ];
 const $ = (id) => document.getElementById(id);
 const nf = new Intl.NumberFormat("pt-BR");
+const reais = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+let relogioPlacar = 0;
 let D = null;          // dados da cidade e legislatura escolhidas
 let CIDADES = [];
 let porId = new Map();
@@ -110,6 +112,7 @@ function desenhar() {
     numero(conta("homenagem"), "homenagens e moções de pesar"),
     numero(D.sessoes.com_registro, "sessões com presença registrada"),
   );
+  placar();
   chips();
   $("campo-busca").value = "";
   limiteBusca = PASSO;
@@ -266,6 +269,23 @@ function prefeito() {
   pinta();
 }
 
+// ---------- placar do subsídio ----------
+function placar() {
+  clearInterval(relogioPlacar);
+  const sub = D.subsidio, l = D.legislatura;
+  $("placar").hidden = !sub;
+  if (!sub) return;
+  const mostra = () => { $("placar-valor").textContent = reais.format(pagoAte(sub.mensal, l.inicio, l.fim, Date.now())); };
+  mostra();
+  const calmo = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (Date.now() < Date.parse(l.fim + "T23:59:59-03:00")) relogioPlacar = setInterval(mostra, calmo ? 5000 : 100);
+  $("placar-ritmo").textContent = `${reais.format(sub.mensal)} por mês, ${reais.format(sub.mensal / 30)} por dia.`;
+  limpa($("placar-conta")).append(
+    `Conta: 1 presidente a ${reais.format(sub.presidente)} mais ${sub.cadeiras - 1} vereadores a ${reais.format(sub.vereador)} por mês, desde ${dataBr(l.inicio)}. `,
+    "É o valor fixado na norma, não a folha de pagamento: não entram encargos, décimo terceiro, diárias, assessores, descontos nem reajustes posteriores. ",
+    fonte(sub.caminho, sub.norma));
+}
+
 // ---------- metodologia ----------
 function metodo() {
   const s = D.sessoes;
@@ -283,7 +303,8 @@ function metodo() {
     s.sem_registro.length ? "Sessões fora da conta: " + s.sem_registro.join("; ") + "." : null);
   bloco("Votos", "Só aparecem as votações nominais lançadas no sistema, contadas pela sessão em que aconteceram. Votação simbólica ou não lançada não aparece. “Não votou” é como o sistema registra, e não indica o motivo. Quem preside a sessão, em regra, só vota em casos previstos no regimento.");
   bloco("Ruas e bairros", "A busca procura o nome no texto oficial da proposta. A lista de vias repetidas junta pedidos que citam a mesma rua ou estrada, mesmo que tratem de assuntos diferentes.");
-  bloco("O que ainda não está aqui", "Salário dos vereadores, obras, contratos e gastos. Só entram quando houver fonte oficial conferida.");
+  if (D.subsidio) bloco("Subsídio", [`O placar multiplica o subsídio mensal fixado na ${D.subsidio.norma} pelas ${D.subsidio.cadeiras} cadeiras da Câmara e pelo tempo passado desde o início da legislatura. É uma estimativa: o site não lê a folha de pagamento. Quando um suplente assume, a conta segue sendo por cadeira. `, fonte(D.subsidio.caminho, "Abrir a norma")]);
+  bloco("O que ainda não está aqui", (D.subsidio ? "Folha de pagamento, " : "Salário dos vereadores, ") + "obras, contratos e gastos. Só entram quando houver fonte oficial conferida.");
   const erro = limpa($("texto-erro"));
   erro.append("Compare com a página oficial pelo link de cada item. Se o site estiver diferente da Câmara, o erro é nosso e será corrigido. ");
   erro.append(CONTATO_ERRO ? "Escreva para " + CONTATO_ERRO + "." : "Se o erro estiver no registro da própria Câmara, a correção é pedida à secretaria da Câmara.");

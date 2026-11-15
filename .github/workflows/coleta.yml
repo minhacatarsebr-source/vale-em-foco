@@ -19,11 +19,15 @@ jobs:
       falhou: ${{ steps.coleta.outputs.falhou }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # re-run também parte da versão mais nova, não da antiga
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Testes das regras
         run: python3 -m unittest discover -s tests
+      - name: Testes do placar
+        run: node --test tests/
       - name: Coleta (cidade que falha mantém o último arquivo bom)
         id: coleta
         if: github.event_name != 'push'
@@ -35,7 +39,7 @@ jobs:
           git add site/dados
           git diff --cached --quiet && exit 0
           git commit -m "dados: coleta de $(date -u +%F)"
-          git pull --rebase
+          git pull --rebase -X theirs   # se colidir, vale o dado recém-coletado
           git push
       - uses: actions/upload-pages-artifact@v3
         with:

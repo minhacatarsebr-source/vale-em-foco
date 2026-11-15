@@ -34,6 +34,9 @@ section { padding: 32px 0; border-bottom: 1px solid var(--linha); }
 .numero b { display: block; font-size: 2rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
 .numero span { font-size: .9rem; color: var(--suave); }
 
+.placar-valor { margin: 8px 0 6px; font-size: clamp(2.2rem, 10vw, 4.6rem); font-weight: 900; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--destaque); overflow-wrap: anywhere; }
+.placar-selo { margin: 0 0 12px; font-size: .95rem; color: var(--suave); }
+
 #campo-busca { width: 100%; padding: 14px 16px; border: 3px solid var(--tinta); border-radius: 12px; background: var(--papel); font-size: 1.1rem; }
 #campo-busca:focus, select:focus, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--destaque); outline-offset: 2px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }

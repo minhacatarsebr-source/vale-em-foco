@@ -30,6 +30,13 @@
 <main id="conteudo" hidden>
   <section class="numeros" id="numeros" aria-label="Resumo"></section>
 
+  <section id="placar" hidden>
+    <h2>Subsídio dos vereadores desde o início do mandato</h2>
+    <p class="placar-valor" id="placar-valor" aria-live="off"></p>
+    <p class="placar-selo"><span class="selo">Estimativa</span> <span id="placar-ritmo"></span></p>
+    <p class="apoio" id="placar-conta"></p>
+  </section>
+
   <section id="busca">
     <h2>O que pediram pelo seu bairro?</h2>
     <p class="apoio">Digite o nome de uma rua, estrada ou bairro. A busca olha o texto oficial de cada proposta.</p>
@@ -91,6 +98,7 @@
   <p id="rodape-quem"></p>
   <p>Sem vínculo com Câmara, Prefeitura, partido ou candidato. Os dados são públicos e vêm do sistema oficial da Câmara.</p>
 </footer>
+<script src="placar.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

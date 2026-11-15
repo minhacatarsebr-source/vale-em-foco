@@ -144,6 +144,11 @@ def montar(cidade, legislatura, bruto, gerado_em):
     if pessoas_exec:
         prefeito_id = max(pessoas_exec, key=lambda a: exec_cont[a])
 
+    # --- subsídio: valor fixado em norma, cadastrado à mão em config/cidades.json (o PDF oficial é imagem)
+    norma = (cidade.get("subsidios") or {}).get(str(legislatura["numero"]))
+    subsidio = norma and {**norma, "cadeiras": cadeiras,
+                          "mensal": norma["presidente"] + norma["vereador"] * (cadeiras - 1)}
+
     return {
         "cidade": {k: cidade[k] for k in ("slug", "nome", "uf", "sapl")},
         "legislatura": {"numero": legislatura["numero"], "inicio": ini, "fim": fim},
@@ -152,6 +157,7 @@ def montar(cidade, legislatura, bruto, gerado_em):
         "materias": materias,
         "repetidos": regras.vias_repetidas(materias),
         "prefeito": {"nome": autores_exec.get(prefeito_id, ""), "total": sum(1 for m in materias if m["pref"])},
+        "subsidio": subsidio or None,
         "sessoes": {"total": len(sessoes), "com_registro": len(presentes), "sem_registro": sem_registro},
         "controle": {
             "presencas": sum(v["presenca"]["presentes"] for v in vereadores),

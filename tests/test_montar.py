@@ -158,6 +158,21 @@ class Montar(unittest.TestCase):
     def test_foto_vira_https(self):
         self.assertEqual(self.v["Ana"]["foto"], "https://sapl.exemplo.leg.br/media/a.jpg")
 
+    def test_subsidio_soma_presidente_mais_demais_cadeiras(self):
+        b = bruto()
+        b["mandatos"].append({"parlamentar": 99, "data_inicio_mandato": "2025-01-01", "data_fim_mandato": "2028-12-31", "titular": True, "tipo_afastamento": None, "observacao": ""})
+        cidade = dict(CIDADE, subsidios={"19": {"presidente": 7125, "vereador": 5625, "norma": "Resolução nº 2, de 06 de março de 2024", "caminho": "/norma/2185"}})
+        d = montar(cidade, LEG, b, gerado_em="2026-11-14T12:00:00")
+        self.assertEqual(d["subsidio"], {"presidente": 7125, "vereador": 5625, "cadeiras": 2, "mensal": 12750,
+                                         "norma": "Resolução nº 2, de 06 de março de 2024", "caminho": "/norma/2185"})
+
+    def test_sem_norma_cadastrada_nao_ha_subsidio(self):
+        self.assertIsNone(self.d["subsidio"])
+
+    def test_subsidio_de_outra_legislatura_nao_vale(self):
+        cidade = dict(CIDADE, subsidios={"18": {"presidente": 1, "vereador": 1, "norma": "x", "caminho": "/y"}})
+        self.assertIsNone(montar(cidade, LEG, bruto(), gerado_em="2026-11-14T12:00:00")["subsidio"])
+
     def test_via_repetida_e_sessoes_sem_registro(self):
         self.assertEqual(self.d["repetidos"], [{"local": "Rua Um", "ids": [1, 2]}])
         self.assertEqual(self.d["sessoes"], {"total": 3, "com_registro": 2, "sem_registro": ["21ª Ordinária (20/10/2025)"]})

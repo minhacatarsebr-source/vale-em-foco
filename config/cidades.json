@@ -2,7 +2,9 @@
   "contato_robo": "ValeEmFoco-coletor/0.1 (projeto civico de transparencia; coleta lenta, 1x por dia)",
   "cidades": [
     {"slug": "cunha", "nome": "Cunha", "uf": "SP", "sistema": "sapl",
-     "sapl": "https://sapl.cunha.sp.leg.br", "legislaturas": [19, 18], "ativa": true},
+     "sapl": "https://sapl.cunha.sp.leg.br", "legislaturas": [19, 18], "ativa": true,
+     "subsidios": {"19": {"presidente": 7125, "vereador": 5625,
+                          "norma": "Resolução nº 2, de 06 de março de 2024", "caminho": "/norma/2185"}}},
     {"slug": "taubate", "nome": "Taubaté", "uf": "SP", "sistema": null, "ativa": false},
     {"slug": "sao-jose-dos-campos", "nome": "São José dos Campos", "uf": "SP", "sistema": null, "ativa": false},
     {"slug": "jacarei", "nome": "Jacareí", "uf": "SP", "sistema": null, "ativa": false},
